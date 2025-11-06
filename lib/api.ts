@@ -215,7 +215,7 @@ function transformSurveyFromDB(dbSurvey: any): Survey {
     description: dbSurvey.description,
     questions: (dbSurvey.survey_questions || []).map((q: any) => ({
       id: q.id,
-      type: q.type,
+      type: q.type || q.question_type, // 後方互換性のため両方に対応
       question: q.question_text,
       options: q.options || [],
       required: q.required || false,
