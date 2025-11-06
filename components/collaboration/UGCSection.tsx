@@ -5,25 +5,61 @@ import Image from 'next/image';
 import { UGC } from '@/types';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { getUGCUploadUrl, postUGC } from '@/lib/api';
 
 interface UGCSectionProps {
   adId?: string;
   ugc: UGC[];
+  onUGCAdded?: (ugc: UGC) => void;
 }
 
-export function UGCSection({ ugc }: UGCSectionProps) {
+export function UGCSection({ adId, ugc, onUGCAdded }: UGCSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !adId) return;
 
-    setIsUploading(true);
-    // TODO: 実際のアップロード処理を実装
-    setTimeout(() => {
+    try {
+      setIsUploading(true);
+      setError(null);
+
+      // ファイルタイプを判定
+      const type = file.type.startsWith('video/') ? 'video' : 'image';
+
+      // 署名URLを取得
+      const { signedUrl, path } = await getUGCUploadUrl(adId);
+
+      // ファイルをアップロード
+      const uploadResponse = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('ファイルのアップロードに失敗しました');
+      }
+
+      // Supabase StorageのパブリックURLを構築
+      // 実際の環境では、SupabaseのStorage URLを使用
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+      const mediaUrl = supabaseUrl
+        ? `${supabaseUrl}/storage/v1/object/public/ugc/${path}`
+        : path; // フォールバック: パスをそのまま使用
+
+      // UGCを投稿
+      const newUGC = await postUGC(adId, mediaUrl, type);
+      onUGCAdded?.(newUGC);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'UGCの投稿に失敗しました');
+      console.error('Failed to upload UGC:', err);
+    } finally {
       setIsUploading(false);
-      alert('UGCの投稿機能は今後実装予定です');
-    }, 1000);
+    }
   };
 
   return (
@@ -44,13 +80,13 @@ export function UGCSection({ ugc }: UGCSectionProps) {
             accept="image/*,video/*"
             onChange={handleUpload}
             className="hidden"
-            disabled={isUploading}
+            disabled={isUploading || !adId}
           />
           <span className="inline-block">
             <Button
               variant="outline"
               size="sm"
-              disabled={isUploading}
+              disabled={isUploading || !adId}
               type="button"
             >
               {isUploading ? 'アップロード中...' : '投稿する'}
@@ -58,6 +94,12 @@ export function UGCSection({ ugc }: UGCSectionProps) {
           </span>
         </label>
       </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          {error}
+        </div>
+      )}
 
       {/* UGC一覧 */}
       <div className="grid grid-cols-2 gap-4">

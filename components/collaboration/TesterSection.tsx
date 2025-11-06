@@ -4,14 +4,22 @@ import { useState } from 'react';
 import { TesterCampaign } from '@/types';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { applyTester } from '@/lib/api';
 
 interface TesterSectionProps {
   adId?: string;
   campaign: TesterCampaign;
+  onApplied?: () => void;
 }
 
-export function TesterSection({ campaign }: TesterSectionProps) {
+export function TesterSection({
+  adId,
+  campaign,
+  onApplied,
+}: TesterSectionProps) {
   const [isApplied, setIsApplied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [applicationData, setApplicationData] = useState({
     environment: '',
     expectation: '',
@@ -19,11 +27,22 @@ export function TesterSection({ campaign }: TesterSectionProps) {
     experience: '',
   });
 
-  const handleApply = (e: React.FormEvent) => {
+  const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 実際の応募処理を実装
-    setIsApplied(true);
-    alert('テスター応募を受け付けました！結果は後日お知らせします。');
+    if (!adId) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      await applyTester(adId, applicationData);
+      setIsApplied(true);
+      onApplied?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '応募の送信に失敗しました');
+      console.error('Failed to apply tester:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const progressPercentage =
@@ -80,6 +99,11 @@ export function TesterSection({ campaign }: TesterSectionProps) {
             応募フォーム
           </h4>
           <form onSubmit={handleApply} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                {error}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 利用環境
@@ -96,6 +120,7 @@ export function TesterSection({ campaign }: TesterSectionProps) {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
                 placeholder="例: iPhone 15, Android 13"
                 required
+                disabled={isSubmitting || !adId}
               />
             </div>
 
@@ -114,6 +139,7 @@ export function TesterSection({ campaign }: TesterSectionProps) {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
                 rows={3}
                 required
+                disabled={isSubmitting || !adId}
               />
             </div>
 
@@ -132,6 +158,7 @@ export function TesterSection({ campaign }: TesterSectionProps) {
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
                 placeholder="例: @username"
+                disabled={isSubmitting || !adId}
               />
             </div>
 
@@ -149,16 +176,26 @@ export function TesterSection({ campaign }: TesterSectionProps) {
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
                 rows={2}
+                disabled={isSubmitting || !adId}
               />
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-200">
               <label className="flex items-center text-sm text-gray-600">
-                <input type="checkbox" className="mr-2" required />
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  required
+                  disabled={isSubmitting || !adId}
+                />
                 PR表記に同意します
               </label>
-              <Button type="submit" size="sm">
-                応募する
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSubmitting || !adId}
+              >
+                {isSubmitting ? '送信中...' : '応募する'}
               </Button>
             </div>
           </form>

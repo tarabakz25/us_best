@@ -4,32 +4,41 @@ import { useState } from 'react';
 import { Comment } from '@/types';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { postComment } from '@/lib/api';
 
 interface CommentSectionProps {
   adId: string;
   comments: Comment[];
+  onCommentAdded?: (comment: Comment) => void;
 }
 
-export function CommentSection({ adId, comments }: CommentSectionProps) {
+export function CommentSection({
+  adId,
+  comments,
+  onCommentAdded,
+}: CommentSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [localComments, setLocalComments] = useState(comments);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    const comment: Comment = {
-      id: `c-${Date.now()}`,
-      adId,
-      userId: 'current-user',
-      userName: 'あなた',
-      content: newComment,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    setLocalComments([comment, ...localComments]);
-    setNewComment('');
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      const comment = await postComment(adId, newComment.trim());
+      setLocalComments([comment, ...localComments]);
+      setNewComment('');
+      onCommentAdded?.(comment);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'コメントの投稿に失敗しました');
+      console.error('Failed to post comment:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const sortedComments = [...localComments].sort((a, b) => {
@@ -44,20 +53,26 @@ export function CommentSection({ adId, comments }: CommentSectionProps) {
     <div className="space-y-4">
       {/* 入力フォーム */}
       <form onSubmit={handleSubmit} className="space-y-3">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            {error}
+          </div>
+        )}
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="意見・感想・改善案を書き込んでください..."
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
           rows={4}
+          disabled={isSubmitting}
         />
         <div className="flex items-center justify-between">
           <label className="flex items-center text-sm text-gray-600">
-            <input type="checkbox" className="mr-2" required />
+            <input type="checkbox" className="mr-2" required disabled={isSubmitting} />
             PR表記に同意します
           </label>
-          <Button type="submit" size="sm">
-            投稿する
+          <Button type="submit" size="sm" disabled={isSubmitting}>
+            {isSubmitting ? '投稿中...' : '投稿する'}
           </Button>
         </div>
       </form>

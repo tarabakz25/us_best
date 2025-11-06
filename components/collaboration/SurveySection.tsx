@@ -4,17 +4,20 @@ import { useState } from 'react';
 import { Survey, SurveyQuestion } from '@/types';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { submitSurveyAnswers } from '@/lib/api';
 
 interface SurveySectionProps {
   adId?: string;
   survey: Survey;
 }
 
-export function SurveySection({ survey }: SurveySectionProps) {
+export function SurveySection({ adId, survey }: SurveySectionProps) {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>(
     {}
   );
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAnswerChange = (
     questionId: string,
@@ -32,11 +35,38 @@ export function SurveySection({ survey }: SurveySectionProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 実際の送信処理を実装
-    setIsSubmitted(true);
-    alert('アンケートへのご回答ありがとうございます！');
+    if (!adId) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      // 回答をAPI形式に変換
+      const answerArray = survey.questions.map((question) => {
+        const answer = answers[question.id];
+        if (question.type === 'text') {
+          return {
+            question_id: question.id,
+            answer_text: answer as string,
+          };
+        } else {
+          return {
+            question_id: question.id,
+            answer_options: Array.isArray(answer) ? answer : [answer],
+          };
+        }
+      });
+
+      await submitSurveyAnswers(adId, answerArray);
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'アンケートの送信に失敗しました');
+      console.error('Failed to submit survey:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -63,6 +93,11 @@ export function SurveySection({ survey }: SurveySectionProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            {error}
+          </div>
+        )}
         {survey.questions.map((question) => (
           <QuestionField
             key={question.id}
@@ -71,16 +106,22 @@ export function SurveySection({ survey }: SurveySectionProps) {
             onChange={(value) =>
               handleAnswerChange(question.id, value, question.type)
             }
+            disabled={isSubmitting}
           />
         ))}
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <label className="flex items-center text-sm text-gray-600">
-            <input type="checkbox" className="mr-2" required />
+            <input
+              type="checkbox"
+              className="mr-2"
+              required
+              disabled={isSubmitting}
+            />
             PR表記に同意します
           </label>
-          <Button type="submit" size="sm">
-            回答を送信
+          <Button type="submit" size="sm" disabled={isSubmitting || !adId}>
+            {isSubmitting ? '送信中...' : '回答を送信'}
           </Button>
         </div>
       </form>
@@ -92,9 +133,15 @@ interface QuestionFieldProps {
   question: SurveyQuestion;
   value: string | string[] | undefined;
   onChange: (value: string | string[]) => void;
+  disabled?: boolean;
 }
 
-function QuestionField({ question, value, onChange }: QuestionFieldProps) {
+function QuestionField({
+  question,
+  value,
+  onChange,
+  disabled,
+}: QuestionFieldProps) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -117,6 +164,7 @@ function QuestionField({ question, value, onChange }: QuestionFieldProps) {
                 onChange={(e) => onChange(e.target.value)}
                 className="mr-3"
                 required={question.required}
+                disabled={disabled}
               />
               <span className="text-gray-700">{option}</span>
             </label>
@@ -143,6 +191,7 @@ function QuestionField({ question, value, onChange }: QuestionFieldProps) {
                   onChange(newValue);
                 }}
                 className="mr-3"
+                disabled={disabled}
               />
               <span className="text-gray-700">{option}</span>
             </label>
@@ -158,6 +207,7 @@ function QuestionField({ question, value, onChange }: QuestionFieldProps) {
           rows={4}
           required={question.required}
           placeholder="ご意見をお聞かせください"
+          disabled={disabled}
         />
       )}
     </div>
