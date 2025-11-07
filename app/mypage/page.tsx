@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/Card';
 import { ParticipationHistory } from '@/types';
 import { mockComments, mockUGC } from '@/lib/mockData';
+import { SignOutButton } from '@/components/SignOutButton';
 
 export default function MyPage() {
   // TODO: 実際のユーザーデータを取得
@@ -36,7 +37,14 @@ export default function MyPage() {
               UsBest!
             </Link>
             <nav className="flex items-center gap-4">
+              <Link
+                href="/onboarding"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                興味タグ設定
+              </Link>
               <span className="text-sm text-gray-600">マイページ</span>
+              <SignOutButton />
             </nav>
           </div>
         </div>
@@ -63,6 +71,12 @@ export default function MyPage() {
               <p className="text-sm text-gray-600">
                 興味タグ: {user.interests.join(', ')}
               </p>
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center mt-2 text-sm text-blue-600 hover:text-blue-700"
+              >
+                興味タグを編集する
+              </Link>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600 mb-1">獲得ポイント</p>

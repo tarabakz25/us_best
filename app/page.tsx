@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Ad } from '@/types';
 import { AdCard } from '@/components/AdCard';
 import { AdModal } from '@/components/AdModal';
+import { Card } from '@/components/ui/Card';
 import { fetchAds } from '@/lib/api';
 import Link from 'next/link';
 
@@ -46,6 +47,12 @@ export default function Home() {
             <h1 className="text-xl font-bold text-gray-900">UsBest!</h1>
             <nav className="flex items-center gap-4">
               <Link
+                href="/onboarding"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                興味タグ設定
+              </Link>
+              <Link
                 href="/mypage"
                 className="text-sm text-gray-600 hover:text-gray-900"
               >
@@ -58,13 +65,29 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        <div className="mb-8 space-y-4">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             共創型広告フィード
           </h2>
           <p className="text-gray-600">
             あなたの意見で、プロダクトを一緒に作り上げませんか？
           </p>
+          <Card className="p-4 border-dashed border-2 border-gray-200 bg-white">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">興味タグを設定して最適な広告を受け取る</p>
+                <p className="text-sm text-gray-600">
+                  共創したいジャンルを選ぶと、あなた向けの広告と参加体験を優先的に表示します。
+                </p>
+              </div>
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                興味タグを設定
+              </Link>
+            </div>
+          </Card>
         </div>
 
         {/* ローディング状態 */}

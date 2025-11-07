@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // APIクライアント関数
 
 import { Ad, Comment, UGC, Survey, TesterCampaign } from '@/types';
