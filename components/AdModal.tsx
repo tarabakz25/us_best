@@ -18,7 +18,7 @@ export function AdModal({ ad, isOpen, onClose }: AdModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <div className="space-y-6">
         {/* メディアヘッダー */}
-        <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+        <div className="relative w-full h-48 sm:h-64 bg-gray-100 rounded-lg overflow-hidden">
           {ad.mediaType === 'image' ? (
             <Image
               src={ad.mediaUrl}
@@ -45,8 +45,8 @@ export function AdModal({ ad, isOpen, onClose }: AdModalProps) {
               #PR
             </span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{ad.title}</h2>
-          <p className="text-gray-700 mb-4">{ad.description}</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{ad.title}</h2>
+          <p className="text-sm sm:text-base text-gray-700 mb-4">{ad.description}</p>
           {ad.ctaText && ad.ctaUrl && (
             <a
               href={ad.ctaUrl}

@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   description: "ユーザーと企業が、広告を通じてプロダクトづくりに共に関わる新しいUX",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#000',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

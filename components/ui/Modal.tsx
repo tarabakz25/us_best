@@ -37,6 +37,8 @@ export function Modal({
     xl: 'max-w-6xl',
   };
 
+  const sizeClass = sizeStyles[size];
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
@@ -44,25 +46,31 @@ export function Modal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex min-h-screen items-end sm:items-center justify-center px-0 sm:px-4 pt-4 pb-0 sm:pb-20 text-center sm:block sm:p-0">
         {/* 背景オーバーレイ */}
         <div
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           onClick={onClose}
         />
 
-        {/* モーダルパネル */}
-        <div className="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:align-middle dark:bg-gray-900">
-          <div className={`${sizeStyles[size]} w-full`}>
+        {/* モーダルパネル - モバイル時はボトムシート */}
+        <div className="inline-block w-full sm:w-auto transform overflow-hidden bg-white text-left align-bottom sm:align-middle shadow-xl transition-all dark:bg-gray-900">
+          <div className={`w-full sm:${sizeClass} max-h-[90vh] sm:max-h-none rounded-t-2xl sm:rounded-lg overflow-y-auto`}>
+            {/* ドラッグハンドル（モバイルのみ） */}
+            <div className="sm:hidden flex justify-center pt-3 pb-2">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+            </div>
+
             {/* ヘッダー */}
             {title && (
-              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 sm:px-6 py-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {title}
                 </h3>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                  className="text-gray-400 hover:text-gray-500 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label="閉じる"
                 >
                   <span className="sr-only">閉じる</span>
                   <svg
@@ -83,7 +91,11 @@ export function Modal({
             )}
 
             {/* コンテンツ */}
-            <div className="px-6 py-4">{children}</div>
+            <div className="px-4 sm:px-6 py-4" style={{
+              paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+            }}>
+              {children}
+            </div>
           </div>
         </div>
       </div>

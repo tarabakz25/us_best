@@ -13,7 +13,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseStyles = 'font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] min-w-[44px] flex items-center justify-center';
   
   const variantStyles = {
     primary: 'bg-black text-white hover:bg-gray-800 focus:ring-black',

@@ -22,7 +22,7 @@ export function AdCard({ ad, onClick }: AdCardProps) {
       className="cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
     >
-      <div className="relative w-full h-48 bg-gray-100 rounded-t-lg overflow-hidden">
+      <div className="relative w-full h-40 md:h-48 bg-gray-100 rounded-t-lg overflow-hidden">
         {ad.mediaType === 'image' ? (
           <Image
             src={ad.mediaUrl}
@@ -50,10 +50,10 @@ export function AdCard({ ad, onClick }: AdCardProps) {
             </span>
           )}
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
           {ad.title}
         </h3>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <p className="text-xs md:text-sm text-gray-600 mb-3 line-clamp-2">
           {ad.description}
         </p>
         <div className="flex flex-wrap gap-2">
